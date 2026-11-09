@@ -9,20 +9,22 @@ const props = defineProps({
     balances: Object as PropType<Coin[]>,
     metadata: Object as PropType<Record<string, CoinMetadata>>,
     params: String,
+    chainId: String,
 });
 
 const parsed = computed(() => JSON.parse(props.params || "{}"))
 
 const contract = ref(parsed.value.contract)
 const funds = ref([] as Coin[])
-const msg = ref("")
+const msg = ref('{"":""}')
+const data = ref([])
 
 function addFunds() {
     const denom = props.balances?.at(0)?.denom || ""
     funds.value.push({ amount: "", denom })
 }
 function removeFunds() {
-    if(funds.value.length > 0)
+    if (funds.value.length > 0)
         funds.value.pop()
 }
 
@@ -43,11 +45,11 @@ const msgs = computed(() => {
 const isValid = computed(() => {
     let ok = true
     let error = ""
-    if( contract.value.length <= 0 ) {
+    if (contract.value.length <= 0) {
         ok = false
         error = "Contract is not selected"
-    }    
-    if( msg.value.length <= 0 ) {
+    }
+    if (msg.value.length <= 0) {
         ok = false
         error = "Please input arguments"
     }
@@ -55,10 +57,14 @@ const isValid = computed(() => {
 })
 
 function initial() {
-    msg.value = JSON.stringify(parsed.value.execution) || ""
+    msg.value = JSON.stringify(parsed.value.execution) || '{"":""}'
 }
 
-defineExpose({msgs, isValid, initial})
+function select_message(m: string) {
+    msg.value = `{"${m}":""}`
+}
+
+defineExpose({ msgs, isValid, initial, data })
 </script>
 <template>
     <div>
@@ -66,19 +72,26 @@ defineExpose({msgs, isValid, initial})
             <label class="label">
                 <span class="label-text">Sender</span>
             </label>
-            <input :value="sender" type="text" class="text-gray-600 dark:text-white input border !border-gray-300 dark:!border-gray-600" />
+            <input :value="sender" type="text"
+                class="text-gray-600 dark:text-white input border !border-gray-300 dark:!border-gray-600" />
         </div>
         <div class="form-control">
             <label class="label">
                 <span class="label-text">Contract Address</span>
             </label>
-            <input v-model="contract" type="text" class="text-gray-600 dark:text-white input border !border-gray-300 dark:!border-gray-600" />
+            <input v-model="contract" type="text"
+                class="text-gray-600 dark:text-white input border !border-gray-300 dark:!border-gray-600" />
         </div>
         <div class="form-control">
             <label class="label">
                 <span class="label-text">Messages</span>
             </label>
-            <textarea v-model="msg" placeholder="{config: {}}" class="textarea text-gray-800 dark:text-white !border-gray-300 dark:!border-gray-600"></textarea>
+            <textarea v-model="msg" placeholder='{"": ""}'
+                class="textarea text-gray-800 dark:text-white !border-gray-300 dark:!border-gray-600"></textarea>
+            <div>
+                <span v-for="m in data" class="btn btn-xs btn-info mr-2" @click="select_message(m)">{{ m }}</span>
+                <span v-if="data.length === 0">click `simulate` to resolve contract messages </span>
+            </div>
         </div>
         <div class="form-control">
             <label class="label">
@@ -89,7 +102,8 @@ defineExpose({msgs, isValid, initial})
                 </span>
             </label>
             <label v-for="(coin, i) in funds" class="input-group" :key="i">
-                <input v-model="coin.amount" type="text" placeholder="0" class="input border border-gray-300 dark:border-gray-600 w-full dark:text-white" />
+                <input v-model="coin.amount" type="text" placeholder="0"
+                    class="input border border-gray-300 dark:border-gray-600 w-full dark:text-white" />
                 <select v-model="coin.denom" class="select border border-gray-300 dark:border-gray-600 dark:text-white">
                     <option v-for="b in balances" :value="b.denom">{{ b.denom.substring(0, 10) }}</option>
                 </select>

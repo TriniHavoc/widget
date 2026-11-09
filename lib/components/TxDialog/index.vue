@@ -95,6 +95,7 @@ const error = ref('');
 const msgBox = ref({
     msgs: [],
     isValid: { ok: false, error: '' },
+    data: [],
     initial: function () { },
 });
 const feeAmount = ref(2000);
@@ -196,7 +197,7 @@ async function sendTx() {
                 chainId: chainId.value,
             },
         };
-        // console.log('tx:', tx);
+
         const current = readWallet(props.hdPath);
         const wallet = current ? current.wallet : WalletName.Keplr;
         const client = new UniClient(wallet, {
@@ -207,7 +208,7 @@ async function sendTx() {
         if(!advance.value) {
             await client.simulate(props.endpoint, tx, broadcast.value).then(gas => {
                 // update tx gas
-                tx.fee.gas = (gas * 1.25).toFixed()
+                tx.fee.gas = (gas * 1.5).toFixed()
             }).catch(() => {
                 // sending.value = false;
                 // error.value = "Failed to simulate tx gas: " + err;
@@ -230,6 +231,63 @@ async function sendTx() {
     } catch (e) {
         sending.value = false;
         error.value = String(e);
+    }
+}
+
+async function simulate() {
+    try {
+        if (!props.sender) throw new Error('Sender should not be empty!');
+        if (!props.endpoint) throw new Error('Endpoint is empty');
+        if (!feeDenom.value) throw new Error('Fee Denom is empty');
+        if (!msgBox.value.isValid.ok)
+            throw new Error(msgBox.value.isValid.error);
+
+        sending.value = true; // disable sending btn
+
+        const acc = await getAccount(props.endpoint, props.sender);
+        const messages = msgBox.value.msgs;
+
+        const tx = {
+            chainId: chainId.value,
+            signerAddress: props.sender,
+            messages,
+            fee: {
+                gas: "400000",
+                amount: [
+                    { amount: String(feeAmount.value), denom: feeDenom.value },
+                ],
+            },
+            memo: memo.value,
+            signerData: {
+                accountNumber: Number(acc.account.account_number),
+                sequence: Number(acc.account.sequence),
+                chainId: chainId.value,
+            },
+        };
+
+        const current = readWallet(props.hdPath);
+        const wallet = current ? current.wallet : WalletName.Keplr;
+        const client = new UniClient(wallet, {
+            chainId: chainId.value,
+            hdPath: current.hdPath,
+        });
+
+        await client.simulate(props.endpoint, tx, broadcast.value).then(gas => {
+            // update tx gas
+            tx.fee.gas = (gas * 1.5).toFixed()
+        }).catch((e) => {
+            let re = /`(\w+)`/g;
+            let methods = String(e).match(re);
+            if (methods) {
+                msgBox.value.data = methods.map(i => i.replace(/`/g, ''))
+            }
+        })
+
+
+    } catch (e) {
+        error.value = String(e);
+    } finally {
+        sending.value = false;
     }
 }
 
@@ -302,7 +360,7 @@ function fetchTx(tx: string) {
                 <div v-if="sender">
                     <div v-if="view === 'input'">
                         <component :is="msgType" ref="msgBox" :endpoint="endpoint" :sender="sender" :balances="balance"
-                            :metadata="metadatas" :params="props.params" />
+                            :metadata="metadatas" :params="props.params" :chainId="chainId" />
                         <form class="space-y-6" action="#" method="POST">
                             <div :class="advance ? '' : 'hidden'">
                                 <div class="form-control">
@@ -368,10 +426,16 @@ function fetchTx(tx: string) {
                                     class="checkbox checkbox-sm checkbox-primary mr-2" /><label :for="`${type}-advance`"
                                     class="cursor-pointer dark:text-gray-400">Advance</label>
                             </div>
-                            <button class="btn btn-primary" @click="sendTx()" :disabled="sending">
-                                <span v-if="sending" class="loading loading-spinner"></span>
-                                Send
-                            </button>
+                            <div>
+                                <button class="btn btn-primary mr-2" @click="simulate()" :disabled="sending">
+                                    <span v-if="sending" class="loading loading-spinner"></span>
+                                    Simulate
+                                </button>
+                                <button class="btn btn-primary" @click="sendTx()" :disabled="sending">
+                                    <span v-if="sending" class="loading loading-spinner"></span>
+                                    Send
+                                </button>
+                            </div>
                         </div>
                     </div>
 
