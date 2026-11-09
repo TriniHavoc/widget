@@ -8,6 +8,7 @@ import { MetamaskSnapWallet } from './wallets/MetamaskSnapWallet';
 import { LeapWallet } from './wallets/LeapWallet';
 import { OKXWallet } from "./wallets/OKXWallet";
 import { UnisatWallet } from "./wallets/UnisatWallet";
+import { TTDxWallet } from "./wallets/TTDxWallet";
 
 export enum WalletName {
     Keplr = "Keplr",
@@ -18,6 +19,7 @@ export enum WalletName {
     Leap = "Leap",
     OKX = "OKX Wallet",
     Unisat = "UniSat Wallet",
+    TTDx = "TTDx Wallet",
     // None Signning
     Address = "Address",
     NameService = "Nameservice",
@@ -107,6 +109,8 @@ export function extractChainId(chainId: string) {
 export function createWallet(name: WalletName, arg: WalletArgument, registry?: Registry, chain?: IChain,): AbstractWallet {
     const reg = registry || new Registry(defaultRegistryTypes)
     switch (name) {
+        case WalletName.TTDx:
+            return new TTDxWallet(arg, reg);
         case WalletName.OKX:
             return new OKXWallet(arg, <IChain>chain, reg);
         case WalletName.Unisat:

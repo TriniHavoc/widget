@@ -7,7 +7,7 @@
     "author": {
         "name": "Ping",
         "email": "18786721@qq.com"
-    },  
+    },
     "publishConfig": {
         "access": "public"
     },
@@ -34,7 +34,6 @@
         "trypublish": "npm publish || true"
     },
     "dependencies": {
-        "cosmjs-types": "0.9.0",
         "@cosmjs/amino": "^0.32.3",
         "@cosmjs/cosmwasm-stargate": "^0.32.3",
         "@cosmjs/ledger-amino": "^0.32.3",
@@ -48,13 +47,17 @@
         "@metamask/eth-sig-util": "^5.1.0",
         "@ping-pub/chain-registry-client": "^0.0.25",
         "@types/bignumber.js": "^5.0.0",
+        "@walletconnect/sign-client": "2.26.0",
+        "@walletconnect/types": "2.26.0",
         "buffer": "^6.0.3",
+        "cosmjs-types": "0.9.0",
         "cross-fetch": "^3.1.5",
         "daisyui": "^3.1.0",
         "dayjs": "^1.11.7",
         "fflate": "^0.8.0",
         "osmojs": "^15.2.1",
         "ping-widget": "^0.0.33",
+        "qrcode": "1.5.4",
         "vue": "^3.2.47",
         "vue3-webcomponent-wrapper": "^0.2.0"
     },
@@ -64,6 +67,7 @@
         "@noble/secp256k1": "^2.1.0",
         "@rollup/plugin-inject": "^5.0.3",
         "@types/elliptic": "^6.4.18",
+        "@types/qrcode": "1.5.6",
         "@vitejs/plugin-vue": "^4.1.0",
         "assert-browserify": "^2.0.0",
         "autoprefixer": "^10.4.14",

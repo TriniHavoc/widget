@@ -9,6 +9,7 @@ import {
     writeWallet
 } from '../../../lib/wallet/Wallet';
 import { readWallet } from '../../../lib/wallet/Wallet';
+import { disconnectTTDxWallet } from '../../../lib/wallet/wallets/TTDxWallet';
 import { Icon } from '@iconify/vue';
 
 const props = defineProps({
@@ -24,23 +25,12 @@ const sending = ref(false);
 const open = ref(false);
 const error = ref('');
 
-const name = ref(WalletName.Keplr);
+// socanet: the TTDx Wallet (over WalletConnect) is the only wallet offered.
+const name = ref(WalletName.TTDx);
 const list = [
     {
-        wallet: WalletName.Keplr,
-        logo: 'https://ping.pub/logos/keplr-logo.svg'
-    },
-    {
-        wallet: WalletName.Ledger,
-        logo: 'https://ping.pub/logos/ledger.webp'
-    },
-    {
-        wallet: WalletName.Leap,
-        logo: 'https://assets.leapwallet.io/logos/leap-cosmos-logo.svg'
-    },
-    {
-        wallet: WalletName.Metamask,
-        logo: 'https://ping.pub/logos/metamask.png'
+        wallet: WalletName.TTDx,
+        logo: `${location.origin}/socanet-logo.png`
     }
 ];
 
@@ -121,6 +111,7 @@ async function connect() {
 }
 
 function disconnect() {
+    if (connected.value.wallet === WalletName.TTDx) disconnectTTDxWallet().catch(() => {});
     removeWallet(props.hdPath);
     emit('disconnect', { value: connected.value });
     connected.value = {} as ConnectedWallet;
@@ -240,9 +231,6 @@ const customKeplr = computed(() => {
                     </div>
                 </div>
                 <div class="mt-8 text-right flex">
-                    <label class="btn mr-1" @click="keplr">
-                        <Icon icon="mdi:cog-outline" />
-                    </label>
                     <label class="btn btn-primary ping-connect-confirm grow" @click="connect()">
                         <span v-if="sending" class="loading loading-spinner"></span>
                         Connect
