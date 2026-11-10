@@ -463,7 +463,9 @@ async function doDeposit() {
         memo: '',
         signerData: {
             chainId: chainId.value,
-            accountNumber: Number(acc.account.account_number),
+            // BigInt, not Number: account numbers can exceed 2^53 (SDK v0.55 assigns large ones),
+                // and a rounded number makes the signature invalid.
+                accountNumber: BigInt(acc.account.account_number) as unknown as number,
             sequence: Number(acc.account.sequence),
         },
     };
